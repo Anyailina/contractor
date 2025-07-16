@@ -1,9 +1,11 @@
 package org.annill.contractor.entity;
 
-import lombok.Data;
+import java.time.LocalDateTime;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
-
+@Value
+@Builder(toBuilder = true)
 public class Contractor {
 
     private String id;
@@ -12,9 +14,13 @@ public class Contractor {
     private String nameFull;
     private String inn;
     private String ogrn;
-    private String countryId;
-    private Integer industryId;
-    private Integer orgFormId;
+    private String country;
+    private Integer industry;
+    private Integer orgForm;
+    private LocalDateTime createDate;
+    private LocalDateTime modifyDate;
+    private String createUserId;
+    private String modifyUserId;
     private boolean isActive;
 
 }

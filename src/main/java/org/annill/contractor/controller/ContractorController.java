@@ -1,9 +1,13 @@
 package org.annill.contractor.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.entity.Contractor;
+import org.annill.contractor.ContractorSearch;
+import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.repository.ContractorRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,17 +15,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Контроллер контрагента
+ *
+ * @author anailina
  */
-
 @RestController
 @Slf4j
 @RequestMapping("/contractor")
-
+@Tag(name = "Contractor API", description = "Управление контрагентами")
 public class ContractorController {
 
     private final ContractorRepository repository;
@@ -31,36 +35,38 @@ public class ContractorController {
     }
 
     @PutMapping("/save")
-    public void save(@RequestBody Contractor contractor) {
+    @Operation(summary = "Сохранение контрагента")
+    public void save(@RequestBody ContractorDto contractorDto) {
         log.info("Сохранение контрагента");
-        repository.saveOrUpdate(contractor);
+        repository.saveOrUpdate(contractorDto);
     }
 
     @GetMapping("/{id}")
-    public Contractor getById(@PathVariable String id) {
+    @Operation(summary = "Поиск контрагента по id")
+    public ResponseEntity<ContractorDto> getById(@PathVariable String id) {
         log.info("Поиск контрагента по id");
-        return repository.findById(id);
+        return repository.findById(id)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> {
+                log.warn("Контрагент с id {} не найден", id);
+                return ResponseEntity.notFound().build();
+            });
     }
 
     @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Удаление контрагента по id")
     public void delete(@PathVariable String id) {
         log.info("Удаление контрагента по id");
         repository.logicalDelete(id);
     }
 
     @PostMapping("/search")
-    public List<Contractor> search(
-        @RequestParam String contractorId,
-        @RequestParam String parentId,
-        @RequestParam String contractorSearch,
-        @RequestParam String country,
-        @RequestParam Integer industry,
-        @RequestParam String orgForm,
-        @RequestParam int limit,
-        @RequestParam int offset
+    @Operation(summary = "Поиск контрагента по фильтру")
+    public List<ContractorDto> search(
+        @RequestBody ContractorSearch contractorSearch
     ) {
         log.info("Поиск контрагента по фильтру");
-        return repository.search(contractorId, parentId, contractorSearch, country, industry, orgForm, limit, offset);
+        return repository.search(contractorSearch);
     }
 
 }
