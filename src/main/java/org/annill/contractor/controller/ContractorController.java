@@ -45,12 +45,8 @@ public class ContractorController {
     @Operation(summary = "Поиск контрагента по id")
     public ResponseEntity<ContractorDto> getById(@PathVariable String id) {
         log.info("Поиск контрагента по id");
-        return repository.findById(id)
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> {
-                log.warn("Контрагент с id {} не найден", id);
-                return ResponseEntity.notFound().build();
-            });
+        ContractorDto contractor = repository.findById(id);
+        return ResponseEntity.ok(contractor);
     }
 
     @DeleteMapping("/delete/{id}")
