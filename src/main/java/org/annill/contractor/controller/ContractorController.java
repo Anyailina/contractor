@@ -58,11 +58,11 @@ public class ContractorController {
 
     @PostMapping("/search")
     @Operation(summary = "Поиск контрагента по фильтру")
-    public List<ContractorDto> search(
+    public ResponseEntity<List<ContractorDto>> search(
         @RequestBody ContractorSearch contractorSearch
     ) {
         log.info("Поиск контрагента по фильтру");
-        return repository.search(contractorSearch);
+        return ResponseEntity.ok(repository.search(contractorSearch));
     }
 
 }

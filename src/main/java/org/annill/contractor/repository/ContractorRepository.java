@@ -3,7 +3,6 @@ package org.annill.contractor.repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -105,31 +104,20 @@ public class ContractorRepository {
     }
 
     public ContractorDto findById(String id) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("ID контрагента не может быть пустым");
-        }
         Contractor contractor = jdbcTemplate.queryForObject(
             SELECT_BY_ID_SQL,
             Map.of("id", id),
             contractorRowMapper
         );
-        return Optional.ofNullable(contractor)
-            .map(contractorConverter::toDto)
-            .orElseThrow(() -> new EntityNotFoundException("Контрагент с ID " + id + " не найден"));
+        return contractorConverter.toDto(contractor);
     }
 
     public void logicalDelete(String id) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("ID контрагента не может быть пустым");
-        }
+        findById(id);
         jdbcTemplate.update(LOGICAL_DELETE_SQL, Map.of("id", id));
     }
 
     public List<ContractorDto> search(ContractorSearch contractorSearch) {
-        if (contractorSearch == null) {
-            return List.of();
-        }
-
         StringBuilder sql = new StringBuilder(SEARCH_BASE_SQL);
         Map<String, Object> params = new HashMap<>();
 
@@ -151,7 +139,7 @@ public class ContractorRepository {
             params.put("country", "%" + contractorSearch.getCountry() + "%");
         }
         if (contractorSearch.getIndustry() != null) {
-            sql.append(" AND c.industry = :industry");
+            sql.append(" AND in.name = :industry");
             params.put("industry", contractorSearch.getIndustry());
         }
         if (contractorSearch.getOrgForm() != null && !contractorSearch.getOrgForm().isBlank()) {

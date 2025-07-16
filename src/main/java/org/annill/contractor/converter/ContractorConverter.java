@@ -9,17 +9,16 @@ import org.springframework.stereotype.Component;
 public class ContractorConverter {
 
     public ContractorDto toDto(Contractor entity) {
-        return new ContractorDto(
-            entity.getId(),
-            entity.getParentId(),
-            entity.getName(),
-            entity.getNameFull(),
-            entity.getInn(),
-            entity.getOgrn(),
-            entity.getCountry(),
-            entity.getIndustry(),
-            entity.getOrgForm()
-        );
+        return ContractorDto.builder()
+            .id(entity.getId())
+            .parentId(entity.getParentId())
+            .name(entity.getName())
+            .nameFull(entity.getNameFull())
+            .inn(entity.getInn())
+            .ogrn(entity.getOgrn())
+            .country(entity.getCountry())
+            .industry(entity.getIndustry())
+            .orgForm(entity.getOrgForm()).build();
     }
 
     public Contractor toEntity(ContractorDto dto,
