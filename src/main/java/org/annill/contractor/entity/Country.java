@@ -1,9 +1,10 @@
 package org.annill.contractor.entity;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
-
+@Value
+@Builder(toBuilder = true)
 public class Country {
 
     private String id;
