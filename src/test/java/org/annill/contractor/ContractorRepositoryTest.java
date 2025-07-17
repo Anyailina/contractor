@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +108,7 @@ public class ContractorRepositoryTest {
 
     @Test
     void testSearch_WithAllParameters_ShouldReturnFilteredResults() {
-        List<Contractor> contractors = Collections.singletonList(testContractor);
+        List<Contractor> contractors = List.of(testContractor);
 
         when(jdbcTemplate.query(anyString(), anyMap(), any(RowMapper.class)))
             .thenReturn(contractors);
