@@ -14,17 +14,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmptyResultDataAccessException.class)
-    public ResponseEntity<String> handleEntityNotFound(EntityNotFoundException ex) {
+    public ResponseEntity<String> handleEntityNotFound(EmptyResultDataAccessException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<String> handleIncorrectEntity(EntityNotFoundException ex) {
+    public ResponseEntity<String> handleIncorrectEntity(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleIncorrectEntity(EntityNotFoundException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
