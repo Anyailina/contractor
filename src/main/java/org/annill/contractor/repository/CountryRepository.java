@@ -63,9 +63,11 @@ public class CountryRepository {
         Integer count = jdbcTemplate.queryForObject(COUNT_BY_ID_QUERY, Map.of("id", country.getId()), Integer.class);
 
         if (count != null && count > 0) {
-            jdbcTemplate.update(UPDATE_QUERY, Map.of("id", country.getId(), "name", country.getName()));
+            jdbcTemplate.update(UPDATE_QUERY,
+                Map.of("id", country.getId(), "name", country.getName(), "is_active", true));
         } else {
-            jdbcTemplate.update(INSERT_QUERY, Map.of("id", country.getId(), "name", country.getName()));
+            jdbcTemplate.update(INSERT_QUERY,
+                Map.of("id", country.getId(), "name", country.getName(), "is_active", true));
         }
     }
 

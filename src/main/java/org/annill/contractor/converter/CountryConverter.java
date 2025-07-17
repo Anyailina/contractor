@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class CountryConverter {
 
     public CountryDto toDto(Country country) {
-        return new CountryDto(country.getId(), country.getName());
+        return CountryDto.builder().id(country.getId()).name(country.getName()).build();
     }
 
     public Country toDto(CountryDto countryDto) {
