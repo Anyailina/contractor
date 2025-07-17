@@ -3,7 +3,9 @@ package org.annill.contractor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityNotFoundException;
 import org.annill.contractor.controller.ContractorController;
 import org.annill.contractor.dto.ContractorDto;
@@ -28,6 +30,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -63,17 +66,17 @@ class ContractorApplicationTests {
     }
 
     @Autowired
-    private ContractorTestRepository testRepository;
-    @Autowired
     private TestRestTemplate restTemplate;
     @Autowired
     private ContractorRepository repository;
-
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
     @Autowired
     private ContractorController controller;
 
     private String testContractorId;
     private String baseUrl;
+
 
     @BeforeEach
     void setUpBeforeEach() {
@@ -91,12 +94,12 @@ class ContractorApplicationTests {
             .industry(1)
             .orgForm(2)
             .build();
-        testRepository.save(contractor);
+        save(contractor);
     }
 
     @AfterEach
     void setUpAfterEach() {
-        testRepository.delete(testContractorId);
+        delete(testContractorId);
     }
 
 
@@ -295,5 +298,37 @@ class ContractorApplicationTests {
     void testSaveNullContractor_AtRepositoryLevel() {
         assertThrows(EntityNotFoundException.class, () -> repository.saveOrUpdate(null));
     }
-    
+
+    public void save(Contractor contractor) {
+        String sql = """
+            INSERT INTO contractor 
+            (id, name, name_full, inn, ogrn, country, industry, org_form, create_date, is_active)
+            VALUES 
+            (:id, :name, :nameFull, :inn, :ogrn, :country, :industry, :orgForm, now(), true)
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", contractor.getId());
+        params.put("name", contractor.getName());
+        params.put("nameFull", contractor.getNameFull());
+        params.put("inn", contractor.getInn());
+        params.put("ogrn", contractor.getOgrn());
+        params.put("country", contractor.getCountry());
+        params.put("industry", contractor.getIndustry());
+        params.put("orgForm", contractor.getOrgForm());
+
+        jdbcTemplate.update(sql, params);
+    }
+
+    public void delete(String id) {
+        String sql = """
+            DELETE from contractor where id = :id
+            """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+
+        jdbcTemplate.update(sql, params);
+    }
+
 }
