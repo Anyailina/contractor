@@ -6,14 +6,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.converter.ContractorConverter;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.entity.Contractor;
+import org.annill.contractor.filter.ContractorSearch;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Репозиторий контрагента
@@ -78,6 +79,7 @@ public class ContractorRepository {
             .isActive(rs.getBoolean("is_active"))
             .build();
 
+    @Transactional
     public void saveOrUpdate(ContractorDto contractorDto) {
         if (contractorDto == null || contractorDto.getId() == null) {
             throw new EntityNotFoundException();
@@ -113,6 +115,7 @@ public class ContractorRepository {
         return contractorConverter.toDto(contractor);
     }
 
+    @Transactional
     public void logicalDelete(String id) {
         findById(id);
         jdbcTemplate.update(LOGICAL_DELETE_SQL, Map.of("id", id));
