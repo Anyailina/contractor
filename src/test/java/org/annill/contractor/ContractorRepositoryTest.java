@@ -25,7 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ContractorRepositoryTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
         .withDatabaseName("contractor")
         .withUsername("myuser")
         .withPassword("secret");
