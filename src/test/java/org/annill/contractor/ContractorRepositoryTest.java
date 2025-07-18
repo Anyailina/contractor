@@ -40,6 +40,8 @@ class ContractorRepositoryTest {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
+    ContractorDto contractorDto = TestData.createContractorDto();
+
     @BeforeEach
     void clearDatabase() {
         jdbcTemplate.getJdbcTemplate().execute("TRUNCATE TABLE contractor");
@@ -50,7 +52,6 @@ class ContractorRepositoryTest {
 
     @Test
     void saveOrUpdate_shouldInsertNewContractor() {
-        ContractorDto contractorDto = TestData.createContractorDto();
 
         repository.saveOrUpdate(contractorDto);
 
@@ -61,7 +62,6 @@ class ContractorRepositoryTest {
 
     @Test
     void saveOrUpdate_shouldUpdateExistingContractor() {
-        ContractorDto contractorDto = TestData.createContractorDto();
 
         repository.saveOrUpdate(contractorDto);
         ContractorDto newContractorDto = ContractorDto.builder()
@@ -84,7 +84,6 @@ class ContractorRepositoryTest {
 
     @Test
     void findById_shouldReturnContractor() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         assertThrows(EmptyResultDataAccessException.class,
             () -> repository.findById(contractorDto.getId()));
         repository.saveOrUpdate(contractorDto);
@@ -95,8 +94,6 @@ class ContractorRepositoryTest {
 
     @Test
     void logicalDelete_shouldDeactivateContractor() {
-        ContractorDto contractorDto = TestData.createContractorDto();
-
         repository.saveOrUpdate(contractorDto);
         assertNotNull(repository.findById(contractorDto.getId()));
         repository.logicalDelete(contractorDto.getId());
@@ -107,7 +104,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldFindByFilter() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         repository.saveOrUpdate(contractorDto);
         List<ContractorDto> results = repository.search(TestData.createContractorSearch());
         assertEquals(1, results.size());
@@ -116,7 +112,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldNotFoundBecauseOfId() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         Industry industry = Industry.builder().id("5")
             .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
         ContractorSearch contractorSearch = ContractorSearch.builder()
@@ -135,7 +130,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldNotFoundBecauseOfContractorSearch() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         Industry industry = Industry.builder().id("5")
             .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
         ContractorSearch contractorSearch = ContractorSearch.builder()
@@ -154,7 +148,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldNotFoundBecauseOfCountryName() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         Industry industry = Industry.builder().id("5")
             .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
         ContractorSearch contractorSearch = ContractorSearch.builder()
@@ -173,7 +166,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldNotFoundBecauseOfIndustry() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         Industry industry = Industry.builder().id("5")
             .name("5").build();
         ContractorSearch contractorSearch = ContractorSearch.builder()
@@ -192,7 +184,6 @@ class ContractorRepositoryTest {
 
     @Test
     void search_shouldNotFoundBecauseOfOrgForm() {
-        ContractorDto contractorDto = TestData.createContractorDto();
         Industry industry = Industry.builder().id("5")
             .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
         ContractorSearch contractorSearch = ContractorSearch.builder()

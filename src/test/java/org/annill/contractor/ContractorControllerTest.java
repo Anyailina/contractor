@@ -55,11 +55,9 @@ public class ContractorControllerTest {
 
     @Test
     public void testGetById() throws Exception {
-        ContractorDto contractor = TestData.createContractorDto();
-        when(repository.findById(contractor.getId())).thenReturn(contractor);
+        when(repository.findById(expected.getId())).thenReturn(expected);
 
-        mockMvc.perform(get(String.format("/contractor/%s", contractor.getId())))
-            .andExpect(status().isOk())
+        mockMvc.perform(get(String.format("/contractor/%s", expected.getId()))).andExpect(status().isOk())
             .andExpect(jsonPath("$.id", Matchers.is("123")))
             .andExpect(jsonPath("$.name", Matchers.is(("ООО Ромашка"))));
     }
@@ -69,29 +67,23 @@ public class ContractorControllerTest {
 
         when(repository.search(search)).thenReturn(List.of(expected));
 
-        MvcResult result = mockMvc.perform(post("/contractor/search")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonSearch))
-            .andExpect(status().isOk())
-            .andReturn();
+        MvcResult result = mockMvc.perform(
+                post("/contractor/search").contentType(MediaType.APPLICATION_JSON).content(jsonSearch))
+            .andExpect(status().isOk()).andReturn();
 
         String responseBody = result.getResponse().getContentAsString();
 
-        List<ContractorDto> actualList = objectMapper.readValue(
-            responseBody,
-            objectMapper.getTypeFactory().constructCollectionType(List.class, ContractorDto.class)
-        );
+        List<ContractorDto> actualList = objectMapper.readValue(responseBody,
+            objectMapper.getTypeFactory().constructCollectionType(List.class, ContractorDto.class));
 
         Assertions.assertEquals(List.of(expected), actualList);
     }
 
     @Test
     public void testWrongGetId() throws Exception {
-        ContractorDto contractor = TestData.createContractorDto();
-        when(repository.findById(contractor.getId())).thenThrow(new DataIntegrityViolationException("wrong"));
+        when(repository.findById(expected.getId())).thenThrow(new DataIntegrityViolationException("wrong"));
 
-        mockMvc.perform(get(String.format("/contractor/%s", contractor.getId())))
-            .andExpect(status().isNotFound());
+        mockMvc.perform(get(String.format("/contractor/%s", expected.getId()))).andExpect(status().isNotFound());
 
     }
 
