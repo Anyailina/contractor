@@ -1,133 +1,211 @@
 package org.annill.contractor;
 
-
-import static org.annill.contractor.TestData.createContractor;
-import static org.annill.contractor.TestData.createContractorDto;
-import static org.annill.contractor.TestData.createContractorSearch;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import javax.persistence.EntityNotFoundException;
-import org.annill.contractor.converter.ContractorConverter;
 import org.annill.contractor.dto.ContractorDto;
-import org.annill.contractor.entity.Contractor;
+import org.annill.contractor.entity.Industry;
+import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@ExtendWith(MockitoExtension.class)
-public class ContractorRepositoryTest {
+@Testcontainers
+@SpringBootTest
+class ContractorRepositoryTest {
 
-    @Mock
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+        .withDatabaseName("contractor")
+        .withUsername("myuser")
+        .withPassword("secret");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Mock
-    private ContractorConverter contractorConverter;
-
-    @InjectMocks
-    private ContractorRepository contractorRepository;
-
-    private ContractorDto testContractorDto;
-    private Contractor testContractor;
-    private ContractorSearch testContractorSearch;
-
     @BeforeEach
-    public void setUp() {
-        testContractorDto = createContractorDto();
-        testContractorSearch = createContractorSearch();
-        testContractor = createContractor();
+    void clearDatabase() {
+        jdbcTemplate.getJdbcTemplate().execute("TRUNCATE TABLE contractor");
+    }
+
+    @Autowired
+    private ContractorRepository repository;
+
+    @Test
+    void saveOrUpdate_shouldInsertNewContractor() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+
+        repository.saveOrUpdate(contractorDto);
+
+        ContractorDto saved = repository.findById(contractorDto.getId());
+        assertNotNull(saved);
+        assertEquals(contractorDto, saved);
+    }
+
+    @Test
+    void saveOrUpdate_shouldUpdateExistingContractor() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+
+        repository.saveOrUpdate(contractorDto);
+        ContractorDto newContractorDto = ContractorDto.builder()
+            .id(contractorDto.getId())
+            .name("1")
+            .nameFull("Общество с ограниченной ответственностью Ромашка")
+            .inn("123")
+            .ogrn("1027700132195")
+            .country("RUS")
+            .industry(5)
+            .orgForm(1)
+            .build();
+
+        repository.saveOrUpdate(newContractorDto);
+
+        ContractorDto updated = repository.findById(contractorDto.getId());
+        assertNotNull(updated);
+        assertEquals(newContractorDto, updated);
+    }
+
+    @Test
+    void findById_shouldReturnContractor() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        assertThrows(EmptyResultDataAccessException.class,
+            () -> repository.findById(contractorDto.getId()));
+        repository.saveOrUpdate(contractorDto);
+        ContractorDto newFound = repository.findById(contractorDto.getId());
+        assertNotNull(newFound);
     }
 
 
     @Test
-    void testSaveOrUpdate_WhenContractorExists_ShouldUpdate() {
-        when(jdbcTemplate.queryForObject(eq(Query.COUNT_BY_ID_SQL),
-            anyMap(), eq(Integer.class))).thenReturn(1);
+    void logicalDelete_shouldDeactivateContractor() {
+        ContractorDto contractorDto = TestData.createContractorDto();
 
-        contractorRepository.saveOrUpdate(testContractorDto);
+        repository.saveOrUpdate(contractorDto);
+        assertNotNull(repository.findById(contractorDto.getId()));
+        repository.logicalDelete(contractorDto.getId());
 
-        verify(jdbcTemplate).update(eq(Query.UPDATE_CONTRACTOR_SQL), anyMap());
+        assertThrows(EmptyResultDataAccessException.class,
+            () -> repository.findById(contractorDto.getId()));
     }
 
     @Test
-    void testSaveOrUpdate_WhenContractorNotExists_ShouldInsert() {
-        when(jdbcTemplate.queryForObject(eq(Query.COUNT_BY_ID_SQL),
-            anyMap(), eq(Integer.class))).thenReturn(0);
-
-        contractorRepository.saveOrUpdate(testContractorDto);
-
-        verify(jdbcTemplate).update(eq(Query.INSERT_CONTRACTOR_SQL), anyMap());
+    void search_shouldFindByFilter() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(TestData.createContractorSearch());
+        assertEquals(1, results.size());
+        assertEquals(contractorDto, results.get(0));
     }
 
     @Test
-    void testSaveOrUpdate_WhenContractorDtoIsNull_ShouldThrowException() {
-        assertThrows(EntityNotFoundException.class, () -> contractorRepository.saveOrUpdate(null));
+    void search_shouldNotFoundBecauseOfId() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        Industry industry = Industry.builder().id("5")
+            .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
+        ContractorSearch contractorSearch = ContractorSearch.builder()
+            .id("122")
+            .searchFilter("Ромашка")
+            .country("Российская Федерация")
+            .industry(industry)
+            .orgForm("-")
+            .limit(10)
+            .offset(0)
+            .build();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(contractorSearch);
+        assertEquals(0, results.size());
     }
 
     @Test
-    void testFindById_ShouldReturnContractorDto() {
-        when(jdbcTemplate.queryForObject(eq(Query.SELECT_BY_ID_SQL),
-            anyMap(), any(RowMapper.class))).thenReturn(testContractor);
-        when(contractorConverter.toDto(testContractor)).thenReturn(testContractorDto);
-
-        ContractorDto result = contractorRepository.findById("123");
-
-        assertNotNull(result);
-        assertEquals(testContractorDto.getId(), result.getId());
-        assertEquals(testContractorDto.getName(), result.getName());
+    void search_shouldNotFoundBecauseOfContractorSearch() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        Industry industry = Industry.builder().id("5")
+            .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
+        ContractorSearch contractorSearch = ContractorSearch.builder()
+            .id("123")
+            .searchFilter("122")
+            .country("Российская Федерация")
+            .industry(industry)
+            .orgForm("-")
+            .limit(10)
+            .offset(0)
+            .build();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(contractorSearch);
+        assertEquals(0, results.size());
     }
 
     @Test
-    void testLogicalDelete_ShouldCallUpdate() {
-        when(jdbcTemplate.queryForObject(eq(Query.SELECT_BY_ID_SQL),
-            anyMap(), any(RowMapper.class))).thenReturn(testContractor);
-
-        contractorRepository.logicalDelete("123");
-
-        verify(jdbcTemplate).update(eq(Query.LOGICAL_DELETE_SQL),
-            eq(Map.of("id", "123")));
+    void search_shouldNotFoundBecauseOfCountryName() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        Industry industry = Industry.builder().id("5")
+            .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
+        ContractorSearch contractorSearch = ContractorSearch.builder()
+            .id("123")
+            .searchFilter("Ромашка")
+            .country("Россия")
+            .industry(industry)
+            .orgForm("-")
+            .limit(10)
+            .offset(0)
+            .build();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(contractorSearch);
+        assertEquals(0, results.size());
     }
 
     @Test
-    void testSearch_WithAllParameters_ShouldReturnFilteredResults() {
-        List<Contractor> contractors = List.of(testContractor);
-
-        when(jdbcTemplate.query(anyString(), anyMap(), any(RowMapper.class)))
-            .thenReturn(contractors);
-        when(contractorConverter.toDto(testContractor)).thenReturn(testContractorDto);
-
-        List<ContractorDto> result = contractorRepository.search(testContractorSearch);
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size());
-        assertEquals(testContractorDto.getId(), result.get(0).getId());
+    void search_shouldNotFoundBecauseOfIndustry() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        Industry industry = Industry.builder().id("5")
+            .name("5").build();
+        ContractorSearch contractorSearch = ContractorSearch.builder()
+            .id("123")
+            .searchFilter("Ромашка")
+            .country("Российская Федерация")
+            .industry(industry)
+            .orgForm("-")
+            .limit(10)
+            .offset(0)
+            .build();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(contractorSearch);
+        assertEquals(0, results.size());
     }
 
     @Test
-    void testSearch_WithEmptyResult_ShouldReturnEmptyList() {
-        when(jdbcTemplate.query(anyString(), anyMap(), any(RowMapper.class)))
-            .thenReturn(Collections.emptyList());
-
-        List<ContractorDto> result = contractorRepository.search(testContractorSearch);
-
-        assertTrue(result.isEmpty());
+    void search_shouldNotFoundBecauseOfOrgForm() {
+        ContractorDto contractorDto = TestData.createContractorDto();
+        Industry industry = Industry.builder().id("5")
+            .name("Агропромышленный комплекс и пищевая промышленность (кроме сегментов выделенных отдельно)").build();
+        ContractorSearch contractorSearch = ContractorSearch.builder()
+            .id("123")
+            .searchFilter("Ромашка")
+            .country("Российская Федерация")
+            .industry(industry)
+            .orgForm("5")
+            .limit(10)
+            .offset(0)
+            .build();
+        repository.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = repository.search(contractorSearch);
+        assertEquals(0, results.size());
     }
 }

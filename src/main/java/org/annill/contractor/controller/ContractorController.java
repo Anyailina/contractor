@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.ContractorSearch;
+import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.repository.ContractorRepository;
 import org.springframework.http.ResponseEntity;

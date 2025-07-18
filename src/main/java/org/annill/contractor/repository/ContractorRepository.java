@@ -6,10 +6,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.annill.contractor.ContractorSearch;
+import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.converter.ContractorConverter;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.entity.Contractor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,7 +57,7 @@ public class ContractorRepository {
         SELECT c.*
         FROM contractor c
         LEFT JOIN country co ON c.country = co.id AND co.is_active = true
-        LEFT JOIN industry in ON c.industry = in.id AND in.is_active = true
+        LEFT JOIN industry ind ON c.industry = ind.id AND ind.is_active = true
         LEFT JOIN org_form o ON c.org_form = o.id AND o.is_active = true
         WHERE c.is_active = true""";
 
@@ -121,28 +122,34 @@ public class ContractorRepository {
         StringBuilder sql = new StringBuilder(SEARCH_BASE_SQL);
         Map<String, Object> params = new HashMap<>();
 
-        if (contractorSearch.getId() != null) {
+        if (StringUtils.isNotBlank(contractorSearch.getId())) {
             sql.append(" AND c.id = :contractorId");
             params.put("contractorId", contractorSearch.getId());
         }
-        if (contractorSearch.getParentId() != null) {
+
+        if (StringUtils.isNotBlank(contractorSearch.getParentId())) {
             sql.append(" AND c.parent_id = :parentId");
             params.put("parentId", contractorSearch.getParentId());
         }
-        if (contractorSearch.getSearchFilter() != null && !contractorSearch.getSearchFilter().isBlank()) {
-            sql.append(
-                " AND (c.name ILIKE :searchText OR c.name_full ILIKE :searchText OR c.inn ILIKE :searchText OR c.ogrn ILIKE :searchText)");
+
+        if (StringUtils.isNotBlank(contractorSearch.getSearchFilter())) {
+            sql.append(" AND (c.name ILIKE :searchText OR c.name_full ILIKE :searchText " +
+                "OR c.inn ILIKE :searchText OR c.ogrn ILIKE :searchText)");
             params.put("searchText", "%" + contractorSearch.getSearchFilter() + "%");
         }
-        if (contractorSearch.getCountry() != null && !contractorSearch.getCountry().isBlank()) {
+
+        if (StringUtils.isNotBlank(contractorSearch.getCountry())) {
             sql.append(" AND co.name ILIKE :country");
             params.put("country", "%" + contractorSearch.getCountry() + "%");
         }
-        if (contractorSearch.getIndustry() != null) {
-            sql.append(" AND in.name = :industry");
-            params.put("industry", contractorSearch.getIndustry());
+
+        if (contractorSearch.getIndustry() != null &&
+            StringUtils.isNotBlank(contractorSearch.getIndustry().getName())) {
+            sql.append(" AND ind.name = :industry");
+            params.put("industry", contractorSearch.getIndustry().getName());
         }
-        if (contractorSearch.getOrgForm() != null && !contractorSearch.getOrgForm().isBlank()) {
+
+        if (StringUtils.isNotBlank(contractorSearch.getOrgForm())) {
             sql.append(" AND o.name ILIKE :orgForm");
             params.put("orgForm", "%" + contractorSearch.getOrgForm() + "%");
         }

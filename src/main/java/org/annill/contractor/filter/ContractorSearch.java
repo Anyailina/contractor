@@ -1,8 +1,9 @@
-package org.annill.contractor;
+package org.annill.contractor.filter;
 
 import jdk.jfr.Name;
 import lombok.Builder;
 import lombok.Value;
+import org.annill.contractor.entity.Industry;
 
 @Value
 @Builder(toBuilder = true)
@@ -15,7 +16,7 @@ public class ContractorSearch {
     @Name("contractor_search")
     private String searchFilter;
     private String country;
-    private String industry;
+    private Industry industry;
     @Name("org_form")
     private String orgForm;
     private Integer limit;

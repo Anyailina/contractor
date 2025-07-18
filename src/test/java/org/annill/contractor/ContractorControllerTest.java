@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.annill.contractor.controller.ContractorController;
 import org.annill.contractor.dto.ContractorDto;
+import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
