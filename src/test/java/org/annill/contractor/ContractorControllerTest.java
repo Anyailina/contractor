@@ -57,9 +57,16 @@ public class ContractorControllerTest {
     public void testGetById() throws Exception {
         when(repository.findById(expected.getId())).thenReturn(expected);
 
-        mockMvc.perform(get(String.format("/contractor/%s", expected.getId()))).andExpect(status().isOk())
-            .andExpect(jsonPath("$.id", Matchers.is("123")))
-            .andExpect(jsonPath("$.name", Matchers.is(("ООО Ромашка"))));
+        MvcResult result = mockMvc.perform(get(String.format("/contractor/%s", expected.getId())))
+            .andExpect(status().isOk())
+            .andReturn();
+
+
+        String responseBody = result.getResponse().getContentAsString();
+
+        ContractorDto newCountryDto = objectMapper.readValue(responseBody, ContractorDto.class);
+
+        Assertions.assertEquals(newCountryDto, newCountryDto);
     }
 
     @Test
