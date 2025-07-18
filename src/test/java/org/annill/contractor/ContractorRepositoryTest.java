@@ -208,4 +208,5 @@ class ContractorRepositoryTest {
         List<ContractorDto> results = repository.search(contractorSearch);
         assertEquals(0, results.size());
     }
+
 }
