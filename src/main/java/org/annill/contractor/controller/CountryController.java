@@ -50,7 +50,7 @@ public class CountryController {
 
     @PutMapping("/save")
     @Operation(description = "Сохранение страны")
-    public void save(@RequestBody Country country) {
+    public void save(@RequestBody CountryDto country) {
         log.info("Сохранение страны");
         repository.saveOrUpdate(country);
     }

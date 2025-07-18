@@ -6,6 +6,7 @@ import org.annill.contractor.entity.Contractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Репизоторий контрагента
@@ -37,6 +38,7 @@ public class ContractorRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Transactional
     public void saveOrUpdate(Contractor c) {
         String sqlSelect = "SELECT count(*) FROM contractor WHERE id = :id";
         Integer count = jdbcTemplate.queryForObject(sqlSelect, Map.of("id", c.getId()), Integer.class);
@@ -82,6 +84,7 @@ public class ContractorRepository {
         return jdbcTemplate.queryForObject(sql, Map.of("id", id), contractorRowMapper);
     }
 
+    @Transactional
     public void logicalDelete(String id) {
         String sql = "UPDATE contractor SET is_active = false, modify_date = now() WHERE id = :id";
         jdbcTemplate.update(sql, Map.of("id", id));

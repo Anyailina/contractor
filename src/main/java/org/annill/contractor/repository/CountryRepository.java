@@ -59,7 +59,7 @@ public class CountryRepository {
             .orElseThrow(() -> new EntityNotFoundException("Страна с ID " + id + " не найдена"));
     }
 
-    public void saveOrUpdate(Country country) {
+    public void saveOrUpdate(CountryDto country) {
         Integer count = jdbcTemplate.queryForObject(COUNT_BY_ID_QUERY, Map.of("id", country.getId()), Integer.class);
 
         if (count != null && count > 0) {
