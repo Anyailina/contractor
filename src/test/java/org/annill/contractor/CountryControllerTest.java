@@ -1,6 +1,8 @@
 package org.annill.contractor;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -82,7 +85,18 @@ public class CountryControllerTest {
     public void testWrongGetId() throws Exception {
         when(repository.findById(countryDto.getId())).thenThrow(new DataIntegrityViolationException("wrong"));
 
-        mockMvc.perform(get(String.format("/contractor/%s", countryDto.getId())))
+        mockMvc.perform(get(String.format("/country/%s", countryDto.getId())))
+            .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    public void testWrongDelete() throws Exception {
+        doThrow(new EmptyResultDataAccessException(1))
+            .when(repository)
+            .logicalDelete(countryDto.getId());
+
+        mockMvc.perform(delete(String.format("/country/delete/%s", countryDto.getId())))
             .andExpect(status().isNotFound());
 
     }
