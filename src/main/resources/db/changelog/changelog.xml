@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <include file="sql/V1_create_country.sql" relativeToChangelogFile="true"/>
+    <include file="sql/V2_create_industry.sql" relativeToChangelogFile="true"/>
+    <include file="sql/V3_create_org_form.sql" relativeToChangelogFile="true"/>
+    <include file="sql/V4_create_contractor.sql" relativeToChangelogFile="true"/>
+
+    <changeSet id="load_country" author="anailina">
+        <loadData
+          tableName="country"
+          file="db/changelog/data/country.csv"
+          separator=";"
+        />
+    </changeSet>
+    <changeSet id="load_industry" author="anailina">
+        <loadData
+          tableName="industry"
+          file="db/changelog/data/industry.csv"
+          separator=";"
+        />
+    </changeSet>
+    <changeSet id="load_org_form" author="anailina">
+        <loadData
+          tableName="org_form"
+          file="db/changelog/data/org_form.csv"
+          separator=";"
+        />
+    </changeSet>
+</databaseChangeLog>
