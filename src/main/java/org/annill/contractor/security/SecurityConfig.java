@@ -35,9 +35,8 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/contractor-to-role/*").permitAll()
-                .requestMatchers("/deal/*").permitAll()
-                .requestMatchers("/deal-contractor/*").permitAll()
+                .requestMatchers("/contractor/*").permitAll()
+                .requestMatchers("/country/*").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
