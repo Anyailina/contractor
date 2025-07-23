@@ -1,5 +1,6 @@
 package org.annill.contractor.repository;
 
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class ContractorRepository {
 
-    private static final String COUNT_BY_ID_SQL =
-        "SELECT count(*) FROM contractor WHERE id = :id";
+    private static final String COUNT_BY_ID_SQL = "SELECT count(*) FROM contractor WHERE id = :id";
 
-    private static final String SELECT_BY_ID_SQL =
-        "SELECT * FROM contractor WHERE is_active = true AND id = :id";
+    private static final String SELECT_BY_ID_SQL = "SELECT * FROM contractor WHERE is_active = true AND id = :id";
 
-    private static final String LOGICAL_DELETE_SQL =
-        "UPDATE contractor SET is_active = false, modify_date = now() WHERE id = :id";
+    private static final String LOGICAL_DELETE_SQL = "UPDATE contractor SET is_active = false, modify_date = now() WHERE id = :id";
 
     private static final String UPDATE_CONTRACTOR_SQL = """
         UPDATE contractor
@@ -65,19 +63,11 @@ public class ContractorRepository {
     private final ContractorConverter contractorConverter;
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final RowMapper<Contractor> contractorRowMapper = (rs, rowNum) ->
-        Contractor.builder()
-            .id(rs.getString("id"))
-            .parentId(rs.getString("parent_id"))
-            .name(rs.getString("name"))
-            .nameFull(rs.getString("name_full"))
-            .inn(rs.getString("inn"))
-            .ogrn(rs.getString("ogrn"))
-            .country(rs.getString("country"))
-            .industry(rs.getInt("industry"))
-            .orgForm(rs.getInt("org_form"))
-            .isActive(rs.getBoolean("is_active"))
-            .build();
+    private final RowMapper<Contractor> contractorRowMapper = (rs, rowNum) -> Contractor.builder()
+        .id(rs.getString("id")).parentId(rs.getString("parent_id")).name(rs.getString("name"))
+        .nameFull(rs.getString("name_full")).inn(rs.getString("inn")).ogrn(rs.getString("ogrn"))
+        .country(rs.getString("country")).industry(rs.getInt("industry")).orgForm(rs.getInt("org_form"))
+        .isActive(rs.getBoolean("is_active")).build();
 
     @Transactional
     public void saveOrUpdate(ContractorDto contractorDto) {
@@ -85,8 +75,8 @@ public class ContractorRepository {
             throw new EntityNotFoundException();
         }
 
-        Integer count = jdbcTemplate.queryForObject(COUNT_BY_ID_SQL,
-            Map.of("id", contractorDto.getId()), Integer.class);
+        Integer count = jdbcTemplate.queryForObject(COUNT_BY_ID_SQL, Map.of("id", contractorDto.getId()),
+            Integer.class);
 
         Map<String, Object> params = new HashMap<>();
         params.put("id", contractorDto.getId());
@@ -107,11 +97,7 @@ public class ContractorRepository {
     }
 
     public ContractorDto findById(String id) {
-        Contractor contractor = jdbcTemplate.queryForObject(
-            SELECT_BY_ID_SQL,
-            Map.of("id", id),
-            contractorRowMapper
-        );
+        Contractor contractor = jdbcTemplate.queryForObject(SELECT_BY_ID_SQL, Map.of("id", id), contractorRowMapper);
         return contractorConverter.toDto(contractor);
     }
 
@@ -122,6 +108,10 @@ public class ContractorRepository {
     }
 
     public List<ContractorDto> search(ContractorSearch contractorSearch) {
+        return search(contractorSearch, null);
+    }
+
+    public List<ContractorDto> search(ContractorSearch contractorSearch, @Nullable String idCountry) {
         StringBuilder sql = new StringBuilder(SEARCH_BASE_SQL);
         Map<String, Object> params = new HashMap<>();
 
@@ -136,8 +126,8 @@ public class ContractorRepository {
         }
 
         if (StringUtils.isNotBlank(contractorSearch.getSearchFilter())) {
-            sql.append(" AND (c.name ILIKE :searchText OR c.name_full ILIKE :searchText " +
-                "OR c.inn ILIKE :searchText OR c.ogrn ILIKE :searchText)");
+            sql.append(" AND (c.name ILIKE :searchText OR c.name_full ILIKE :searchText "
+                + "OR c.inn ILIKE :searchText OR c.ogrn ILIKE :searchText)");
             params.put("searchText", "%" + contractorSearch.getSearchFilter() + "%");
         }
 
@@ -146,8 +136,13 @@ public class ContractorRepository {
             params.put("country", "%" + contractorSearch.getCountry() + "%");
         }
 
-        if (contractorSearch.getIndustry() != null &&
-            StringUtils.isNotBlank(contractorSearch.getIndustry().getName())) {
+        if (StringUtils.isNotBlank(idCountry)) {
+            sql.append(" AND co.id = idCountry");
+            params.put("idCountry", idCountry);
+        }
+
+        if (contractorSearch.getIndustry() != null && StringUtils.isNotBlank(
+            contractorSearch.getIndustry().getName())) {
             sql.append(" AND ind.name = :industry");
             params.put("industry", contractorSearch.getIndustry().getName());
         }
@@ -161,9 +156,7 @@ public class ContractorRepository {
         params.put("limit", contractorSearch.getLimit());
         params.put("offset", contractorSearch.getOffset());
 
-        return jdbcTemplate.query(sql.toString(), params, contractorRowMapper)
-            .stream()
-            .map(contractorConverter::toDto)
+        return jdbcTemplate.query(sql.toString(), params, contractorRowMapper).stream().map(contractorConverter::toDto)
             .collect(Collectors.toList());
     }
 

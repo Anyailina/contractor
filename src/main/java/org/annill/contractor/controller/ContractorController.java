@@ -3,9 +3,10 @@ package org.annill.contractor.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.dto.ContractorDto;
+import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,19 +27,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping("/contractor")
 @Tag(name = "Contractor API", description = "Управление контрагентами")
+@RequiredArgsConstructor
 public class ContractorController {
 
     private final ContractorRepository repository;
 
-    public ContractorController(ContractorRepository repository) {
-        this.repository = repository;
-    }
-
     @PutMapping("/save")
     @Operation(summary = "Сохранение контрагента")
-    public void save(@RequestBody ContractorDto contractorDto) {
+    public ResponseEntity<?> save(@RequestBody ContractorDto contractorDto) {
         log.info("Сохранение контрагента");
         repository.saveOrUpdate(contractorDto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
@@ -51,9 +50,10 @@ public class ContractorController {
 
     @DeleteMapping("/delete/{id}")
     @Operation(summary = "Удаление контрагента по id")
-    public void delete(@PathVariable String id) {
+    public ResponseEntity<?> delete(@PathVariable String id) {
         log.info("Удаление контрагента по id");
         repository.logicalDelete(id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/search")
