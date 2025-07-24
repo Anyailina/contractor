@@ -4,12 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.controller.ContractorController;
+import org.annill.contractor.controller.ContractorApi;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,8 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UiContractorController {
 
-    private final ContractorController controller;
-    private final ContractorRepository repository;
+    private final ContractorApi controller;
+    private final ContractorRepository contractorRepository;
 
     /**
      * Сохраняет контрагента в системе.
@@ -86,10 +87,11 @@ public class UiContractorController {
     @Operation(summary = "Поиск контрагента по фильтру")
     @PreAuthorize("hasAnyRole('CONTRACTOR_RUS','CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<List<ContractorDto>> search(
-        @RequestBody ContractorSearch contractorSearch
+        @RequestBody ContractorSearch contractorSearch,
+        Authentication authentication
     ) {
         log.info("Поиск контрагента по фильтру");
-        return ResponseEntity.ok(repository.search(contractorSearch, "RUS"));
+        return ResponseEntity.ok(contractorRepository.filterRusSearch(contractorSearch, authentication));
     }
 
 }

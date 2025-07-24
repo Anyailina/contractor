@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.controller.CountryController;
+import org.annill.contractor.controller.CountryApi;
 import org.annill.contractor.dto.CountryDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UiCountryController {
 
-    private final CountryController controller;
+    private final CountryApi controller;
 
     /**
      * Возвращает полный список стран.

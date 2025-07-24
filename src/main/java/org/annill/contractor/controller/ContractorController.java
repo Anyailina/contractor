@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/contractor")
 @Tag(name = "Contractor API", description = "Управление контрагентами")
 @RequiredArgsConstructor
-public class ContractorController {
+public class ContractorController implements ContractorApi {
 
     private final ContractorRepository repository;
 

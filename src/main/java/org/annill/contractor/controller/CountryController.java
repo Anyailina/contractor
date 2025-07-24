@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/country")
 @RequiredArgsConstructor
 @Tag(name = "Country API", description = "Управление странами")
-public class CountryController {
+public class CountryController implements CountryApi {
 
     private final CountryRepository repository;
 

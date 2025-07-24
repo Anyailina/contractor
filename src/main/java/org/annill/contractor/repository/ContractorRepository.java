@@ -14,6 +14,7 @@ import org.annill.contractor.filter.ContractorSearch;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class ContractorRepository {
     private static final String SELECT_BY_ID_SQL = "SELECT * FROM contractor WHERE is_active = true AND id = :id";
 
     private static final String LOGICAL_DELETE_SQL = "UPDATE contractor SET is_active = false, modify_date = now() WHERE id = :id";
+    private static final String ROLE = "CONTRACTOR_RUS";
 
     private static final String UPDATE_CONTRACTOR_SQL = """
         UPDATE contractor
@@ -109,6 +111,23 @@ public class ContractorRepository {
 
     public List<ContractorDto> search(ContractorSearch contractorSearch) {
         return search(contractorSearch, null);
+    }
+
+    public List<ContractorDto> filterRusSearch(ContractorSearch contractorSearch, Authentication authentication) {
+        boolean isSearchRus = hasAuthority(authentication, ROLE);
+
+        if (isSearchRus) {
+            return search(contractorSearch, ROLE);
+        }
+        return search(contractorSearch);
+
+    }
+
+    private boolean hasAuthority(Authentication authentication, String role) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream().anyMatch(a -> role.equals(a.getAuthority()));
     }
 
     public List<ContractorDto> search(ContractorSearch contractorSearch, @Nullable String idCountry) {
