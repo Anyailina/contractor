@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.annill.contractor.controller.ContractorApi;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UiContractorController {
 
-    private final ContractorApi controller;
     private final ContractorRepository contractorRepository;
 
     /**
@@ -46,7 +44,8 @@ public class UiContractorController {
     @Operation(summary = "Сохранение контрагента")
     public ResponseEntity<?> save(@RequestBody ContractorDto contractorDto) {
         log.info("Сохранение контрагента");
-        return controller.save(contractorDto);
+        contractorRepository.saveOrUpdate(contractorDto);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -60,7 +59,7 @@ public class UiContractorController {
     @PreAuthorize("hasAnyRole('USER','CONTRACTOR_RUS,CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<ContractorDto> getById(@PathVariable String id) {
         log.info("Поиск контрагента по id");
-        return controller.getById(id);
+        return ResponseEntity.ok(contractorRepository.findById(id));
     }
 
     /**
@@ -74,7 +73,8 @@ public class UiContractorController {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER')")
     public ResponseEntity<?> delete(@PathVariable String id) {
         log.info("Удаление контрагента по id");
-        return controller.delete(id);
+        contractorRepository.logicalDelete(id);
+        return ResponseEntity.ok().build();
     }
 
     /**

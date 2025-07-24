@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.annill.contractor.controller.CountryApi;
 import org.annill.contractor.dto.CountryDto;
+import org.annill.contractor.repository.CountryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,9 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping("ui/country")
 @RequiredArgsConstructor
-public class UiCountryController {
+public class UiCountryController implements CountryApi {
 
-    private final CountryApi controller;
+    private final CountryRepository countryRepository;
 
     /**
      * Возвращает полный список стран.
@@ -40,7 +41,7 @@ public class UiCountryController {
     @Operation(description = "Поиск всех стран")
     public ResponseEntity<List<CountryDto>> findAll() {
         log.info("Поиск стран");
-        return controller.findAll();
+        return ResponseEntity.ok(countryRepository.findAll());
     }
 
     /**
@@ -54,7 +55,7 @@ public class UiCountryController {
     @Operation(description = "Поиск страны по id")
     public ResponseEntity<CountryDto> getById(@PathVariable String id) {
         log.info("Поиск страны по id");
-        return controller.getById(id);
+        return ResponseEntity.ok(countryRepository.findById(id));
     }
 
     /**
@@ -68,7 +69,8 @@ public class UiCountryController {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<Void> save(@RequestBody CountryDto country) {
         log.info("Сохранение страны");
-        return controller.save(country);
+        countryRepository.saveOrUpdate(country);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -82,7 +84,8 @@ public class UiCountryController {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         log.info("Удаление страны по id");
-        return controller.delete(id);
+        countryRepository.logicalDelete(id);
+        return ResponseEntity.ok().build();
     }
 
 }
