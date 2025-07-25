@@ -2,8 +2,7 @@ package org.annill.contractor.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.annill.contractor.TestData;
-import org.annill.contractor.controller.ContractorController;
-import org.annill.contractor.controller.ui.UiContractorController;
+
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.security.JwtUtils;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,8 +37,6 @@ public class UiContractorControllerSecurityTest {
     @MockitoBean
     private JwtUtils jwtUtils;
 
-    @MockitoBean
-    private ContractorController contractorController;
 
     @Autowired
     private ObjectMapper objectMapper;

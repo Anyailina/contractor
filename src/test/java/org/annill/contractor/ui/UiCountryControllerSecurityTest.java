@@ -2,7 +2,6 @@ package org.annill.contractor.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.annill.contractor.TestData;
-import org.annill.contractor.controller.ContractorController;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.security.JwtUtils;
@@ -37,8 +36,6 @@ public class UiCountryControllerSecurityTest {
     @MockitoBean
     private JwtUtils jwtUtils;
 
-    @MockitoBean
-    private ContractorController contractorController;
 
     @Autowired
     private ObjectMapper objectMapper;
