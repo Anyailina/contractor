@@ -13,10 +13,13 @@ import java.util.List;
 import org.annill.contractor.controller.CountryController;
 import org.annill.contractor.dto.CountryDto;
 import org.annill.contractor.repository.CountryRepository;
+import org.annill.contractor.security.AuthTokenFilter;
+import org.annill.contractor.service.CountryService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -25,13 +28,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(CountryController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class CountryControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CountryRepository repository;
+    private CountryService countryService;
+
+    @MockitoBean
+    private AuthTokenFilter authTokenFilter;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -49,7 +56,7 @@ public class CountryControllerTest {
 
     @Test
     public void testGetAll() throws Exception {
-        when(repository.findAll()).thenReturn(List.of(countryDto));
+        when(countryService.findAll()).thenReturn(List.of(countryDto));
 
         MvcResult result = mockMvc.perform(get("/country/all"))
             .andExpect(status().isOk())
@@ -68,7 +75,7 @@ public class CountryControllerTest {
 
     @Test
     public void testGetById() throws Exception {
-        when(repository.findById(countryDto.getId())).thenReturn(countryDto);
+        when(countryService.getById(countryDto.getId())).thenReturn(countryDto);
 
         MvcResult result = mockMvc.perform(get(String.format("/country/%s", countryDto.getId())))
             .andExpect(status().isOk())
@@ -83,7 +90,7 @@ public class CountryControllerTest {
 
     @Test
     public void testWrongGetId() throws Exception {
-        when(repository.findById(countryDto.getId())).thenThrow(new DataIntegrityViolationException("wrong"));
+        when(countryService.getById(countryDto.getId())).thenThrow(new DataIntegrityViolationException("wrong"));
 
         mockMvc.perform(get(String.format("/country/%s", countryDto.getId())))
             .andExpect(status().isNotFound());
@@ -93,8 +100,8 @@ public class CountryControllerTest {
     @Test
     public void testWrongDelete() throws Exception {
         doThrow(new EmptyResultDataAccessException(1))
-            .when(repository)
-            .logicalDelete(countryDto.getId());
+            .when(countryService).delete(countryDto.getId());
+
 
         mockMvc.perform(delete(String.format("/country/delete/%s", countryDto.getId())))
             .andExpect(status().isNotFound());

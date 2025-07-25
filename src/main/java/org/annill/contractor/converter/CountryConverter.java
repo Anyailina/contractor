@@ -11,7 +11,7 @@ public class CountryConverter {
         return CountryDto.builder().id(country.getId()).name(country.getName()).build();
     }
 
-    public Country toDto(CountryDto countryDto) {
+    public Country toEntity(CountryDto countryDto) {
         return Country.builder().id(countryDto.getId()).name(countryDto.getName()).build();
     }
 

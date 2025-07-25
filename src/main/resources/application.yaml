@@ -4,10 +4,13 @@ spring:
     url: jdbc:postgresql://localhost:5434/contractor
     username: myuser
     password: secret
-
+  jwt:
+    jwtSecret: "verysecretkey-should-be-at-least-256-bits-long!"
   application:
     name: contractor
 
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/changelog.xml
+server:
+  port: 8082
