@@ -33,7 +33,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
 class ContractorServiceTest {
 
     @MockitoBean
