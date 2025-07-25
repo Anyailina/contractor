@@ -35,9 +35,8 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/contractor/*").permitAll()
-                .requestMatchers("/country/*").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/ui/*").authenticated()
+                .anyRequest().permitAll()
             )
             .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
