@@ -1,12 +1,14 @@
 package org.annill.contractor.controller.ui;
 
 import io.swagger.v3.oas.annotations.Operation;
+
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.annill.contractor.dto.ContractorDto;
 import org.annill.contractor.filter.ContractorSearch;
-import org.annill.contractor.repository.ContractorRepository;
+import org.annill.contractor.service.ContractorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,7 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UiContractorController {
 
-    private final ContractorRepository contractorRepository;
+    private final ContractorService service;
+
 
     /**
      * Сохраняет контрагента в системе.
@@ -44,7 +47,7 @@ public class UiContractorController {
     @Operation(summary = "Сохранение контрагента")
     public ResponseEntity<?> save(@RequestBody ContractorDto contractorDto) {
         log.info("Сохранение контрагента");
-        contractorRepository.saveOrUpdate(contractorDto);
+        service.saveOrUpdate(contractorDto);
         return ResponseEntity.ok().build();
     }
 
@@ -56,10 +59,10 @@ public class UiContractorController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Поиск контрагента по id")
-    @PreAuthorize("hasAnyRole('USER','CONTRACTOR_RUS,CONTRACTOR_SUPERUSER','SUPERUSER')")
+    @PreAuthorize("hasAnyRole('USER','CONTRACTOR_RUS','CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<ContractorDto> getById(@PathVariable String id) {
         log.info("Поиск контрагента по id");
-        return ResponseEntity.ok(contractorRepository.findById(id));
+        return ResponseEntity.ok(service.findById(id));
     }
 
     /**
@@ -73,7 +76,7 @@ public class UiContractorController {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER')")
     public ResponseEntity<?> delete(@PathVariable String id) {
         log.info("Удаление контрагента по id");
-        contractorRepository.logicalDelete(id);
+        service.logicalDelete(id);
         return ResponseEntity.ok().build();
     }
 
@@ -87,11 +90,10 @@ public class UiContractorController {
     @Operation(summary = "Поиск контрагента по фильтру")
     @PreAuthorize("hasAnyRole('CONTRACTOR_RUS','CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<List<ContractorDto>> search(
-        @RequestBody ContractorSearch contractorSearch,
-        Authentication authentication
+            @RequestBody ContractorSearch contractorSearch, Authentication authentication
     ) {
         log.info("Поиск контрагента по фильтру");
-        return ResponseEntity.ok(contractorRepository.filterRusSearch(contractorSearch, authentication));
+        return ResponseEntity.ok(service.filterRusSearch(contractorSearch, authentication));
     }
 
 }

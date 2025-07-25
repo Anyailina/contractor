@@ -3,27 +3,41 @@ package org.annill.contractor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import org.annill.contractor.dto.ContractorDto;
+import org.annill.contractor.entity.Contractor;
 import org.annill.contractor.entity.Industry;
 import org.annill.contractor.filter.ContractorSearch;
 import org.annill.contractor.repository.ContractorRepository;
+import org.annill.contractor.security.AuthTokenFilter;
+import org.annill.contractor.service.ContractorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest
-class ContractorRepositoryTest {
+@AutoConfigureMockMvc(addFilters = false)
+class ContractorServiceTest {
+
+    @MockitoBean
+    private AuthTokenFilter authTokenFilter;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
@@ -40,6 +54,7 @@ class ContractorRepositoryTest {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+    private final String ROLE = "CONTRACTOR_RUS";
 
     ContractorDto contractorDto = TestData.createContractorDto();
 
@@ -49,15 +64,15 @@ class ContractorRepositoryTest {
     }
 
     @Autowired
-    private ContractorRepository repository;
+    private ContractorService contractorService;
 
     @Test
     @Rollback
     void saveOrUpdate_shouldInsertNewContractor() {
 
-        repository.saveOrUpdate(contractorDto);
+        contractorService.saveOrUpdate(contractorDto);
 
-        ContractorDto saved = repository.findById(contractorDto.getId());
+        ContractorDto saved = contractorService.findById(contractorDto.getId());
         assertNotNull(saved);
         assertEquals(contractorDto, saved);
     }
@@ -66,7 +81,7 @@ class ContractorRepositoryTest {
     @Rollback
     void saveOrUpdate_shouldUpdateExistingContractor() {
 
-        repository.saveOrUpdate(contractorDto);
+        contractorService.saveOrUpdate(contractorDto);
         ContractorDto newContractorDto = ContractorDto.builder()
             .id(contractorDto.getId())
             .name("1")
@@ -78,9 +93,9 @@ class ContractorRepositoryTest {
             .orgForm(1)
             .build();
 
-        repository.saveOrUpdate(newContractorDto);
+        contractorService.saveOrUpdate(newContractorDto);
 
-        ContractorDto updated = repository.findById(contractorDto.getId());
+        ContractorDto updated = contractorService.findById(contractorDto.getId());
         assertNotNull(updated);
         assertEquals(newContractorDto, updated);
     }
@@ -88,9 +103,9 @@ class ContractorRepositoryTest {
     @Test
     void findById_shouldReturnContractor() {
         assertThrows(EmptyResultDataAccessException.class,
-            () -> repository.findById(contractorDto.getId()));
-        repository.saveOrUpdate(contractorDto);
-        ContractorDto newFound = repository.findById(contractorDto.getId());
+            () -> contractorService.findById(contractorDto.getId()));
+        contractorService.saveOrUpdate(contractorDto);
+        ContractorDto newFound = contractorService.findById(contractorDto.getId());
         assertNotNull(newFound);
     }
 
@@ -98,18 +113,18 @@ class ContractorRepositoryTest {
     @Test
     @Rollback
     void logicalDelete_shouldDeactivateContractor() {
-        repository.saveOrUpdate(contractorDto);
-        assertNotNull(repository.findById(contractorDto.getId()));
-        repository.logicalDelete(contractorDto.getId());
+        contractorService.saveOrUpdate(contractorDto);
+        assertNotNull(contractorService.findById(contractorDto.getId()));
+        contractorService.logicalDelete(contractorDto.getId());
 
         assertThrows(EmptyResultDataAccessException.class,
-            () -> repository.findById(contractorDto.getId()));
+            () -> contractorService.findById(contractorDto.getId()));
     }
 
     @Test
     void search_shouldFindByFilter() {
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(TestData.createContractorSearch());
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(TestData.createContractorSearch());
         assertEquals(1, results.size());
         assertEquals(contractorDto, results.get(0));
     }
@@ -127,8 +142,8 @@ class ContractorRepositoryTest {
             .limit(10)
             .offset(0)
             .build();
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(contractorSearch);
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(contractorSearch);
         assertEquals(0, results.size());
     }
 
@@ -145,8 +160,8 @@ class ContractorRepositoryTest {
             .limit(10)
             .offset(0)
             .build();
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(contractorSearch);
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(contractorSearch);
         assertEquals(0, results.size());
     }
 
@@ -163,8 +178,8 @@ class ContractorRepositoryTest {
             .limit(10)
             .offset(0)
             .build();
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(contractorSearch);
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(contractorSearch);
         assertEquals(0, results.size());
     }
 
@@ -181,8 +196,8 @@ class ContractorRepositoryTest {
             .limit(10)
             .offset(0)
             .build();
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(contractorSearch);
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(contractorSearch);
         assertEquals(0, results.size());
     }
 
@@ -199,8 +214,8 @@ class ContractorRepositoryTest {
             .limit(10)
             .offset(0)
             .build();
-        repository.saveOrUpdate(contractorDto);
-        List<ContractorDto> results = repository.search(contractorSearch);
+        contractorService.saveOrUpdate(contractorDto);
+        List<ContractorDto> results = contractorService.search(contractorSearch);
         assertEquals(0, results.size());
     }
 

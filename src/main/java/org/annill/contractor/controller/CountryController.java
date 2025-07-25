@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.annill.contractor.dto.CountryDto;
-import org.annill.contractor.repository.CountryRepository;
+import org.annill.contractor.service.CountryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,27 +29,27 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Country API", description = "Управление странами")
 public class CountryController implements CountryApi {
 
-    private final CountryRepository repository;
+    private final CountryService service;
 
     @GetMapping("/all")
     @Operation(description = "Поиск всех стран")
     public ResponseEntity<List<CountryDto>> findAll() {
         log.info("Поиск стран");
-        return ResponseEntity.ok(repository.findAll());
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
     @Operation(description = "Поиск страны по id")
     public ResponseEntity<CountryDto> getById(@PathVariable String id) {
         log.info("Поиск страны по id");
-        return ResponseEntity.ok(repository.findById(id));
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @PutMapping("/save")
     @Operation(description = "Сохранение страны")
     public ResponseEntity<Void> save(@RequestBody CountryDto country) {
         log.info("Сохранение страны");
-        repository.saveOrUpdate(country);
+        service.save(country);
         return ResponseEntity.ok().build();
     }
 
@@ -57,7 +57,7 @@ public class CountryController implements CountryApi {
     @Operation(description = "Удаление страны по id")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         log.info("Удаление страны по id");
-        repository.logicalDelete(id);
+        service.delete(id);
         return ResponseEntity.ok().build();
     }
 

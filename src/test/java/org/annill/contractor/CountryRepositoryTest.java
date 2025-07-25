@@ -6,10 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.annill.contractor.dto.CountryDto;
-import org.annill.contractor.repository.CountryRepository;
+import org.annill.contractor.service.CountryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -23,6 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @SpringBootTest
+@AutoConfigureMockMvc(addFilters = false)
 class CountryRepositoryTest {
 
     @Container
@@ -49,14 +51,14 @@ class CountryRepositoryTest {
     }
 
     @Autowired
-    private CountryRepository repository;
+    private CountryService countryService;
 
     @Test
     void saveOrUpdate_shouldInsertNewContractor() {
 
-        repository.saveOrUpdate(countryDto);
+        countryService.save(countryDto);
 
-        CountryDto saved = repository.findById(countryDto.getId());
+        CountryDto saved = countryService.getById(countryDto.getId());
         assertNotNull(saved);
         assertEquals(countryDto, saved);
     }
@@ -65,15 +67,15 @@ class CountryRepositoryTest {
     @Rollback
     void saveOrUpdate_shouldUpdateExistingCountry() {
 
-        repository.saveOrUpdate(countryDto);
+        countryService.save(countryDto);
         CountryDto newContractorDto = CountryDto.builder()
             .id(countryDto.getId())
             .name("Россия")
             .build();
 
-        repository.saveOrUpdate(newContractorDto);
+        countryService.save(newContractorDto);
 
-        CountryDto updated = repository.findById(countryDto.getId());
+        CountryDto updated = countryService.getById(countryDto.getId());
         assertNotNull(updated);
         assertNotEquals(countryDto.getName(), updated.getName());
     }
@@ -81,9 +83,9 @@ class CountryRepositoryTest {
     @Test
     void findById_shouldReturnCountry() {
         assertThrows(EmptyResultDataAccessException.class,
-            () -> repository.findById(countryDto.getId()));
-        repository.saveOrUpdate(countryDto);
-        CountryDto newFound = repository.findById(countryDto.getId());
+            () -> countryService.getById(countryDto.getId()));
+        countryService.save(countryDto);
+        CountryDto newFound = countryService.getById(countryDto.getId());
         assertNotNull(newFound);
     }
 
@@ -91,12 +93,12 @@ class CountryRepositoryTest {
     @Rollback
     void logicalDelete_shouldDeactivateCountry() {
 
-        repository.saveOrUpdate(countryDto);
-        assertNotNull(repository.findById(countryDto.getId()));
-        repository.logicalDelete(countryDto.getId());
+        countryService.save(countryDto);
+        assertNotNull(countryService.getById(countryDto.getId()));
+        countryService.delete(countryDto.getId());
 
         assertThrows(EmptyResultDataAccessException.class,
-            () -> repository.findById(countryDto.getId()));
+            () -> countryService.getById(countryDto.getId()));
     }
 
     @Test
@@ -104,10 +106,10 @@ class CountryRepositoryTest {
         jdbcTemplate.getJdbcTemplate().execute("TRUNCATE TABLE country  CASCADE");
         CountryDto secondCountryDto = CountryDto.builder().id("RU").name("Россия").build();
         assertThrows(EmptyResultDataAccessException.class,
-            () -> repository.findById(countryDto.getId()));
-        repository.saveOrUpdate(countryDto);
-        repository.saveOrUpdate(secondCountryDto);
-        List<CountryDto> newFound = repository.findAll();
+            () -> countryService.getById(countryDto.getId()));
+        countryService.save(countryDto);
+        countryService.save(secondCountryDto);
+        List<CountryDto> newFound = countryService.findAll();
         assertEquals(2, newFound.size());
         assertEquals(countryDto, newFound.getFirst());
         assertEquals(secondCountryDto, newFound.get(1));

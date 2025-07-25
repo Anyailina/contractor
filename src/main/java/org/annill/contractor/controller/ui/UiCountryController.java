@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.annill.contractor.controller.CountryApi;
 import org.annill.contractor.dto.CountryDto;
-import org.annill.contractor.repository.CountryRepository;
+import org.annill.contractor.service.CountryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UiCountryController implements CountryApi {
 
-    private final CountryRepository countryRepository;
+    private final CountryService countryService;
 
     /**
      * Возвращает полный список стран.
@@ -41,7 +41,7 @@ public class UiCountryController implements CountryApi {
     @Operation(description = "Поиск всех стран")
     public ResponseEntity<List<CountryDto>> findAll() {
         log.info("Поиск стран");
-        return ResponseEntity.ok(countryRepository.findAll());
+        return ResponseEntity.ok(countryService.findAll());
     }
 
     /**
@@ -55,7 +55,7 @@ public class UiCountryController implements CountryApi {
     @Operation(description = "Поиск страны по id")
     public ResponseEntity<CountryDto> getById(@PathVariable String id) {
         log.info("Поиск страны по id");
-        return ResponseEntity.ok(countryRepository.findById(id));
+        return ResponseEntity.ok(countryService.getById(id));
     }
 
     /**
@@ -69,7 +69,7 @@ public class UiCountryController implements CountryApi {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<Void> save(@RequestBody CountryDto country) {
         log.info("Сохранение страны");
-        countryRepository.saveOrUpdate(country);
+        countryService.save(country);
         return ResponseEntity.ok().build();
     }
 
@@ -84,7 +84,7 @@ public class UiCountryController implements CountryApi {
     @PreAuthorize("hasAnyRole('CONTRACTOR_SUPERUSER','SUPERUSER')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         log.info("Удаление страны по id");
-        countryRepository.logicalDelete(id);
+        countryService.delete(id);
         return ResponseEntity.ok().build();
     }
 
